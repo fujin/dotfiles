@@ -196,6 +196,15 @@ For feature branches with multiple commits, use autosquash workflow:
 
 This avoids TTY issues with interactive rebasing while maintaining clean commit history. The `fixup!` commits automatically get marked for squashing without manual editing.
 
+## Dotfiles (chezmoi)
+
+- Source dir: `~/.local/share/chezmoi/`
+- Run chezmoi: `mise exec chezmoi --` or full path `~/.local/share/mise/installs/chezmoi/*/chezmoi`
+- Add file: `chezmoi add ~/.config/foo`
+- Preview: `chezmoi diff`
+- Apply: `chezmoi apply`
+- Templates use `.tmpl` suffix, data from `~/.config/chezmoi/chezmoi.toml`
+
 ## Important Reminders
 
 - NEVER use `--no-verify` to bypass commit hooks
