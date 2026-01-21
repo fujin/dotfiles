@@ -1,0 +1,16 @@
+#!/bin/bash
+set -euo pipefail
+
+# Install mise if not present
+if ! command -v mise &> /dev/null; then
+    echo "Installing mise..."
+    curl https://mise.run | sh
+
+    # Add to path for this session
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+
+echo "Installing mise tools..."
+mise install --yes
+
+echo "mise tools ready"

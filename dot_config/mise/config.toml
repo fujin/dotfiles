@@ -1,61 +1,40 @@
+# Personal tools - work-specific tools should be added per-machine
 [tools]
-ast-grep = "0.40.3"
-claude-code = { version = "2.0.71", bin = "claude", platforms = """
-[linux-arm64]
-url = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{version}/linux-arm64/claude"
+# Shell & prompt
+"github:starship/starship" = "latest"
+atuin = "latest"
+direnv = "latest"
 
-[linux-x64]
-url = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{version}/linux-x64/claude"
+# Editors & terminal
+neovim = "latest"
+tmux = "latest"
 
-[macos-arm64]
-url = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{version}/darwin-arm64/claude"
+# CLI essentials
+eza = "latest"
+fzf = "latest"
+fd = "latest"
+rg = "latest"
+jq = "latest"
+yq = "latest"
+lazygit = "latest"
+watchexec = "latest"
 
-[macos-x64]
-url = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{version}/darwin-x64/claude"
-""", version_list_url = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/latest" }
-cosign = "3.0.3"
-dyff = "1.10.2"
-flux2 = "2.7.5"
-gh = "2.83.2"
-"github:controlplaneio-fluxcd/flux-operator" = { version = "latest", asset_pattern = "flux-operator_*_darwin_arm64.tar.gz" }
-"github:groq/buildkite-scripts" = "4.24.2"
-"github:groq/goat" = { version = "1.12.1", asset_pattern = "goat_*_darwin_all.tar.gz" }
-"github:groq/kubectl-racks" = "1.17.0"
-"github:groq/kubectl-vlogs" = "1.14.1"
-go = "1.25.5"
-golangci-lint = "2.7.2"
-goreleaser = "2.13.1"
-jq = "1.8.1"
-kind = "0.31.0"
-kubebuilder = "4.10.1"
-kubectl = "1.35.0"
-kubectx = "0.9.5"
-kustomize = "5.8.0"
-python = "3.13.11"
-talosctl = "1.11.6"
-terraform = "1.14.3"
-tf-summarize = "0.3.14"
-watchexec = "2.3.2"
-yq = "4.50.1"
-codex = "0.75.0"
-kubens = "0.9.5"
-k9s = "0.50.16"
-fzf = "0.67.0"
-stern = "1.33.1"
-gcloud = "550.0.0"
-"github:groq/kubectl-repair" = "2.5.3"
-"github:groq/groqcli" = "1.39.0"
-node = "25.2.1"
-amp = "0.0.1766073683-gd31338"
-"github:starship/starship" = "1.24.1"
-opencode = "1.0.167"
-rg = "15.1.0"
-neovim = "0.11.5"
-fd = "10.3.0"
-opentofu = "1.11.1"
-npm = "11.7.0"
-chezmoi = "2.69.3"
+# Dev tools
+gh = "latest"
+go = "latest"
+node = "latest"
+npm = "latest"
+python = "latest"
+
+# AI tools
+chezmoi = "latest"
+# claude-code and codex installed separately
+
+# Infra (optional, common across jobs)
+kubectl = "latest"
+k9s = "latest"
+terraform = "latest"
+opentofu = "latest"
 
 [settings]
 experimental = true
-pin = true
