@@ -150,14 +150,6 @@ You have access to Zen tools to supplement your existing capabilities, use them!
 
 Beyond that you have access to a web browser via playwright.
 
-### Language Best Practices
-
-These are guides you should use to understand best practices for the various languages we work in.
-
-- `@/Users/ajchristensen/Developer/lox/agent-docs/docs/bash-best-practices.md` - Bash scripting (3.2 compatible)
-- `@/Users/ajchristensen/Developer/lox/agent-docs/docs/yaml-best-practices.md` - YAML formatting and structure
-- `@/Users/ajchristensen/Developer/lox/agent-docs/docs/go-best-practices.md` - Go development patterns
-
 ## Feedback Style
 
 - Be direct and honest - no sugarcoating
