@@ -1,0 +1,41 @@
+# This is Git's per-user configuration file.
+[user]
+name = AJ Christensen
+email = {{ .email }}
+signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII6MnMPCXCxRbD/MBJXIEvo9MD5Z1nYq8pwlu2zPW3P1
+[alias]
+co = checkout
+br = branch
+ci = commit
+st = status
+dc = diff --cached
+# rb = "!r() { refbranch=$1 count=$2; git for-each-ref --sort=-committerdate refs/heads --format='%(refname:short)|%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always --count=${count:-20} | while read line; do branch=$(echo \"$line\" | awk 'BEGIN { FS = \"|\" }; { print $1 }' | tr -d '*'); ahead=$(git rev-list --count \"${refbranch:-origin/main}..${branch}\"); behind=$(git rev-list --count \"${branch}..${refbranch:-origin/main}\"); colorline=$(echo \"$line\" | sed 's/^[^|]*|//'); echo \"$ahead|$behind|$colorline\" | awk -F'|' -vOFS='|' '{$5=substr($5,1,70)}1' ; done | ( echo \"ahead|behind|branch|lastcommit|message|author\n\" && cat) | column -ts'|';}; r"
+rb = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+	up = pull --rebase --autostash
+[rerere]
+enabled = true
+[push]
+autoSetupRemote = true
+default = simple
+[credential "https://github.com"]
+username = fujin
+[credential]
+helper =
+helper = /usr/local/share/gcm-core/git-credential-manager
+[credential "https://dev.azure.com"]
+useHttpPath = true
+[pull]
+	rebase = true
+[init]
+defaultBranch = main
+[gpg]
+format = ssh
+[commit]
+gpgsign = true
+[gpg "ssh"]
+program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+[core]
+editor = cursor --wait
+	excludesfile = {{ .chezmoi.homeDir }}/.gitignore
+[rebase]
+	autoStash = true

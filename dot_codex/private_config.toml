@@ -1,0 +1,25 @@
+model = "gpt-5.1-codex-max"
+model_reasoning_effort = "medium"
+sandbox_mode = 'danger-full-access'
+
+[mcp_servers]
+[mcp_servers.linear-mcp]
+args = ['-y', 'mcp-remote', 'https://mcp.linear.app/mcp']
+command = 'npx'
+type = 'stdio'
+
+[mcp_servers.notion]
+args = ['-y', 'mcp-remote', 'https://mcp.notion.com/mcp']
+command = 'npx'
+type = 'stdio'
+
+[otel]
+log_user_prompt = false
+
+[otel.exporter]
+[otel.exporter.otlp-http]
+endpoint = 'http://observability-common:8427/insert/opentelemetry/v1/logs'
+protocol = 'binary'
+
+[otel.exporter.otlp-http.headers]
+Authorization = 'Bearer codex'
