@@ -137,19 +137,6 @@ When multiple valid approaches exist, choose based on:
 - Use existing test utilities/helpers/frameworks
 - Tests should be deterministic and FAST
 
-## Key Tools to Use
-
-You have access to Zen tools to supplement your existing capabilities, use them!
-
-- Need deeper thinking? → `thinkdeep` (extends analysis, finds edge cases, use o3-pro for heavy lifting)
-- If you are about to reply "You're absolutely right!", use `challenge` (challenges assumptions, encourages thoughtful re-evaluation)
-- Pre-commit validation? → `precommit` (validate git changes before committing)
-- Something's broken? → `debug` (systematic investigation, step-by-step root cause analysis)
-- Want to understand complex code? → `analyze` (architecture, patterns, dependencies)
-- Code needs refactoring? → `refactor` (intelligent refactoring with decomposition focus)
-
-Beyond that you have access to a web browser via playwright.
-
 ## Feedback Style
 
 - Be direct and honest - no sugarcoating
