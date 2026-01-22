@@ -178,10 +178,17 @@ For feature branches with multiple commits, use autosquash workflow:
 
 3. **Clean up branch**: Use autosquash to automatically organize commits
    ```bash
-   git rebase -i --autosquash HEAD~n
+   git rebase -i --autosquash origin/main
+   ```
+
+4. **CRITICAL - Always push after autosquash**: NEVER push fixup! commits directly
+   ```bash
+   git push --force-with-lease
    ```
 
 This avoids TTY issues with interactive rebasing while maintaining clean commit history. The `fixup!` commits automatically get marked for squashing without manual editing.
+
+**IMPORTANT**: Always run `git rebase -i --autosquash origin/main` BEFORE pushing any branch that contains `fixup!` or `squash!` commits. This ensures a clean commit history on the remote.
 
 ## Dotfiles (chezmoi)
 
@@ -199,8 +206,10 @@ This avoids TTY issues with interactive rebasing while maintaining clean commit 
 - NEVER disable tests instead of fixing them
 - NEVER Commit code that doesn't compile
 - NEVER Make assumptions - verify with existing code
+- NEVER push fixup! or squash! commits without autosquashing first
 
 - ALWAYS Commit working code incrementally, matching the commit conventions for the repo
 - ALWAYS Update plan documentation as you go
 - ALWAYS Learn from existing implementations
 - ALWAYS Stop after 3 failed attempts and reassess
+- ALWAYS run `git rebase -i --autosquash origin/main` before pushing branches with fixup! commits
