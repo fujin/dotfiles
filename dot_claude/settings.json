@@ -38,5 +38,12 @@
       "WebFetch(domain:ziglang.org)"
     ]
   },
-  "model": "opus"
+  "model": "opus",
+  "enabledPlugins": {
+    "claude-md-management@claude-plugins-official": true
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
 }
