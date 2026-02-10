@@ -10,6 +10,11 @@ if ! command -v mise &> /dev/null; then
     export PATH="$HOME/.local/bin:$PATH"
 fi
 
+if ! command -v mise &> /dev/null; then
+    echo "mise not found on PATH after installation"
+    exit 1
+fi
+
 echo "Installing mise tools..."
 mise install --yes
 

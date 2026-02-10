@@ -2,33 +2,45 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "Installing base packages via Homebrew..."
+if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
 
-# Only packages that MUST be in Homebrew:
-# - fish: needs to be a real shell in /etc/shells
-# - 1password-cli: for secret management
-BREW_PACKAGES=(
-    fish
-    1password-cli
-)
+if ! command -v brew &> /dev/null; then
+    echo "Homebrew not found. Run run_once_01-install-homebrew.sh first."
+    exit 1
+fi
 
-for pkg in "${BREW_PACKAGES[@]}"; do
-    if ! brew list "$pkg" &>/dev/null; then
-        echo "Installing $pkg..."
-        brew install "$pkg"
-    fi
-done
+BREWFILE="$HOME/.Brewfile"
+if [[ ! -f "$BREWFILE" ]] && [[ -n "${CHEZMOI_SOURCE_DIR:-}" ]] && [[ -f "${CHEZMOI_SOURCE_DIR}/dot_Brewfile" ]]; then
+    BREWFILE="${CHEZMOI_SOURCE_DIR}/dot_Brewfile"
+fi
+
+if [[ ! -f "$BREWFILE" ]]; then
+    echo "Brewfile not found at $HOME/.Brewfile or ${CHEZMOI_SOURCE_DIR:-<unset>}/dot_Brewfile"
+    exit 1
+fi
+
+echo "Installing packages from $BREWFILE..."
+brew bundle --file="$BREWFILE"
+
+FISH_BIN="$(brew --prefix)/bin/fish"
+if command -v fish &> /dev/null; then
+    FISH_BIN="$(command -v fish)"
+fi
 
 # Add fish to allowed shells if not present
-if ! grep -q "$(brew --prefix)/bin/fish" /etc/shells; then
+if [[ -x "$FISH_BIN" ]] && ! grep -q "$FISH_BIN" /etc/shells; then
     echo "Adding fish to /etc/shells..."
-    echo "$(brew --prefix)/bin/fish" | sudo tee -a /etc/shells
+    echo "$FISH_BIN" | sudo tee -a /etc/shells
 fi
 
 # Set fish as default shell if not already
-if [[ "$SHELL" != *"fish"* ]]; then
+if [[ -x "$FISH_BIN" ]] && [[ "$SHELL" != "$FISH_BIN" ]]; then
     echo "Setting fish as default shell..."
-    chsh -s "$(brew --prefix)/bin/fish"
+    chsh -s "$FISH_BIN"
 fi
 
 echo "Base packages ready"

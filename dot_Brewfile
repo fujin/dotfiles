@@ -1,0 +1,13 @@
+# Managed by chezmoi.
+# Homebrew owns macOS apps and baseline CLI tools.
+
+tap "homebrew/core"
+tap "homebrew/cask"
+
+brew "fish"
+brew "1password-cli"
+brew "kubectx"
+brew "jump"
+
+cask "ghostty"
+cask "1password"
