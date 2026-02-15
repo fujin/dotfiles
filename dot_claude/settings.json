@@ -1,16 +1,11 @@
 {
   "cleanupPeriodDays": 30,
   "env": {},
-  "includeCoAuthoredBy": false,
-  "hooks": {
-    "SessionStart": [{
-      "matcher": "",
-      "hooks": [{
-        "type": "command",
-        "command": "echo 'export PATH=\"$HOME/.local/share/mise/shims:$PATH\"' >> \"$CLAUDE_ENV_FILE\""
-      }]
-    }]
+  "attribution": {
+    "commit": "",
+    "pr": ""
   },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(git:*)",
@@ -48,11 +43,21 @@
     ]
   },
   "model": "opus",
-  "enabledPlugins": {
-    "claude-md-management@claude-plugins-official": true
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'export PATH=\"$HOME/.local/share/mise/shims:$PATH\"' >> \"$CLAUDE_ENV_FILE\""
+          }
+        ]
+      }
+    ]
   },
-  "attribution": {
-    "commit": "",
-    "pr": ""
+  "enabledPlugins": {
+    "claude-md-management@claude-plugins-official": true,
+    "example-skills@anthropic-agent-skills": true
   }
 }

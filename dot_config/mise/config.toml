@@ -37,6 +37,15 @@ k9s = "latest"
 terraform = "latest"
 opentofu = "latest"
 codex = "latest"
+talosctl = "1.12.2"
+colima = "latest"
+gcloud = "latest"
+flux2 = "latest"
+stern = "latest"
+"aqua:kubernetes-sigs/krew" = "latest"
+# "aqua:kubernetes-sigs/krew" = "latest"
+# "krew:view-secret" = "latest"
+# "krew:foreach" = "latest"
 
 [settings]
 experimental = true
