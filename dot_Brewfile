@@ -4,6 +4,7 @@
 brew "fish"
 brew "kubectx"
 brew "jump"
+brew "raycast"
 
 cask "1password-cli"
 cask "ghostty"

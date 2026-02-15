@@ -25,6 +25,7 @@ go = "latest"
 node = "latest"
 npm = "latest"
 python = "latest"
+rust = "stable"
 
 # AI tools
 chezmoi = "latest"

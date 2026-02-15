@@ -1,0 +1,19 @@
+#!/bin/bash
+set -euo pipefail
+
+TPM_DIR="$HOME/.tmux/plugins/tpm"
+INSTALL_PLUGINS="$TPM_DIR/bin/install_plugins"
+
+if ! command -v tmux &> /dev/null; then
+    echo "tmux not found; skipping tmux plugin installation"
+    exit 0
+fi
+
+if [[ ! -x "$INSTALL_PLUGINS" ]]; then
+    echo "tmux TPM not found at $TPM_DIR; skipping tmux plugin installation"
+    exit 0
+fi
+
+echo "Installing tmux plugins via TPM..."
+"$INSTALL_PLUGINS"
+echo "tmux plugins ready"
