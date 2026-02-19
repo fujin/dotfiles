@@ -32,7 +32,9 @@ if status is-interactive
 
     set -Ux EZA_STANDARD_OPTIONS --long --all
 
-    alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+    if test -x /Applications/Tailscale.app/Contents/MacOS/Tailscale; and not command -sq tailscale
+        alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+    end
 
     # kubectl-shell_ctx hook fish | source
     # flux completion fish | source
@@ -41,8 +43,8 @@ end
 
 export EDITOR="cursor -w"
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/ajchristensen/google-cloud-sdk/path.fish.inc' ]
-    . '/Users/ajchristensen/google-cloud-sdk/path.fish.inc'
+if test -f "$HOME/google-cloud-sdk/path.fish.inc"
+    . "$HOME/google-cloud-sdk/path.fish.inc"
 end
 export PATH="$HOME/.local/bin:$PATH"
 

@@ -17,17 +17,23 @@ enabled = true
 [push]
 autoSetupRemote = true
 default = simple
+{{- if eq .chezmoi.os "darwin" }}
 [credential]
 helper = osxkeychain
+{{- end }}
 [credential "https://github.com"]
 username = fujin
 helper =
 helper = !gh auth git-credential
+{{- if eq .chezmoi.os "darwin" }}
 helper = osxkeychain
+{{- end }}
 [credential "https://gist.github.com"]
 helper =
 helper = !gh auth git-credential
+{{- if eq .chezmoi.os "darwin" }}
 helper = osxkeychain
+{{- end }}
 [credential "https://dev.azure.com"]
 useHttpPath = true
 [pull]
@@ -38,8 +44,10 @@ defaultBranch = main
 format = ssh
 [commit]
 gpgsign = true
+{{- if eq .chezmoi.os "darwin" }}
 [gpg "ssh"]
 program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+{{- end }}
 [core]
 editor = cursor --wait
 	excludesfile = {{ .chezmoi.homeDir }}/.gitignore

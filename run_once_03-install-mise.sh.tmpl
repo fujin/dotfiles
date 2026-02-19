@@ -16,6 +16,22 @@ if ! command -v mise &> /dev/null; then
 fi
 
 echo "Installing mise tools..."
-mise install --yes
+if ! mise install --yes; then
+    echo "mise failed to install one or more tools."
+
+    if [[ "$(uname -s)" == "Linux" ]]; then
+        cat <<'EOF'
+Linux hint: if node failed with "libatomic.so.1: cannot open shared object file", install libatomic:
+  Debian/Ubuntu: sudo apt-get update && sudo apt-get install -y libatomic1
+  RHEL/Fedora:   sudo dnf install -y libatomic
+  openSUSE:      sudo zypper install -y libatomic1
+
+Then rerun:
+  mise install --yes
+EOF
+    fi
+
+    echo "Continuing bootstrap with successfully installed tools."
+fi
 
 echo "mise tools ready"

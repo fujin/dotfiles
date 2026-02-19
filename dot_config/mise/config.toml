@@ -22,8 +22,7 @@ watchexec = "latest"
 # Dev tools
 gh = "latest"
 go = "latest"
-node = "latest"
-npm = "latest"
+node = "lts"
 python = "latest"
 rust = "stable"
 
