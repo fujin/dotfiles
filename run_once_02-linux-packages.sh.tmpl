@@ -1,0 +1,98 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+set -euo pipefail
+
+run_as_root() {
+    if [[ "$(id -u)" -eq 0 ]]; then
+        "$@"
+        return
+    fi
+
+    if command -v sudo >/dev/null 2>&1; then
+        sudo "$@"
+        return
+    fi
+
+    return 127
+}
+
+have_libatomic() {
+    if command -v ldconfig >/dev/null 2>&1; then
+        ldconfig -p 2>/dev/null | grep -q 'libatomic\.so\.1'
+        return
+    fi
+
+    [[ -e /usr/lib/libatomic.so.1 || -e /usr/lib64/libatomic.so.1 || -e /lib/x86_64-linux-gnu/libatomic.so.1 ]]
+}
+
+need_fish=0
+need_libatomic=0
+
+if ! command -v fish >/dev/null 2>&1; then
+    need_fish=1
+fi
+
+if ! have_libatomic; then
+    need_libatomic=1
+fi
+
+if [[ "$need_fish" -eq 0 && "$need_libatomic" -eq 0 ]]; then
+    echo "Linux base packages already present"
+    exit 0
+fi
+
+if [[ "$(id -u)" -ne 0 ]] && ! command -v sudo >/dev/null 2>&1; then
+    echo "Need root privileges to install fish/libatomic automatically; install manually and rerun chezmoi apply"
+    exit 0
+fi
+
+if command -v apt-get >/dev/null 2>&1; then
+    pkgs=()
+    [[ "$need_fish" -eq 1 ]] && pkgs+=(fish)
+    [[ "$need_libatomic" -eq 1 ]] && pkgs+=(libatomic1)
+
+    if [[ ${#pkgs[@]} -gt 0 ]]; then
+        echo "Installing Linux packages with apt-get: ${pkgs[*]}"
+        if ! run_as_root apt-get update || ! run_as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y "${pkgs[@]}"; then
+            echo "Failed to install packages with apt-get; continuing"
+        fi
+    fi
+elif command -v dnf >/dev/null 2>&1; then
+    pkgs=()
+    [[ "$need_fish" -eq 1 ]] && pkgs+=(fish)
+    [[ "$need_libatomic" -eq 1 ]] && pkgs+=(libatomic)
+
+    if [[ ${#pkgs[@]} -gt 0 ]]; then
+        echo "Installing Linux packages with dnf: ${pkgs[*]}"
+        if ! run_as_root dnf install -y "${pkgs[@]}"; then
+            echo "Failed to install packages with dnf; continuing"
+        fi
+    fi
+elif command -v zypper >/dev/null 2>&1; then
+    pkgs=()
+    [[ "$need_fish" -eq 1 ]] && pkgs+=(fish)
+    [[ "$need_libatomic" -eq 1 ]] && pkgs+=(libatomic1)
+
+    if [[ ${#pkgs[@]} -gt 0 ]]; then
+        echo "Installing Linux packages with zypper: ${pkgs[*]}"
+        if ! run_as_root zypper --non-interactive install "${pkgs[@]}"; then
+            echo "Failed to install packages with zypper; continuing"
+        fi
+    fi
+elif command -v pacman >/dev/null 2>&1; then
+    pkgs=()
+    [[ "$need_fish" -eq 1 ]] && pkgs+=(fish)
+    [[ "$need_libatomic" -eq 1 ]] && pkgs+=(gcc-libs)
+
+    if [[ ${#pkgs[@]} -gt 0 ]]; then
+        echo "Installing Linux packages with pacman: ${pkgs[*]}"
+        if ! run_as_root pacman -Sy --noconfirm "${pkgs[@]}"; then
+            echo "Failed to install packages with pacman; continuing"
+        fi
+    fi
+else
+    echo "No supported package manager found. Install fish and libatomic manually."
+fi
+
+echo "Linux base packages ready"
+{{ end -}}
