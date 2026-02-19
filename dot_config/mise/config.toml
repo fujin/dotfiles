@@ -1,3 +1,7 @@
+[tool_alias]
+kubectx = "github:ahmetb/kubectx"
+kubens = "github:ahmetb/kubectx"
+
 # Personal tools - work-specific tools should be added per-machine
 [tools]
 # Shell & prompt
@@ -22,7 +26,8 @@ watchexec = "latest"
 # Dev tools
 gh = "latest"
 go = "latest"
-node = "lts"
+node = "latest"
+npm = "latest"
 python = "latest"
 rust = "stable"
 
@@ -31,11 +36,11 @@ chezmoi = "latest"
 # claude-code and codex installed separately
 
 # Infra (optional, common across jobs)
-kubectl = "latest"
+kubectl = "1.35"
 k9s = "latest"
 terraform = "latest"
 opentofu = "latest"
-codex = "latest"
+codex = "0.104.0"
 talosctl = "1.12.2"
 colima = "latest"
 gcloud = "latest"
@@ -44,6 +49,13 @@ stern = "latest"
 "aqua:kubernetes-sigs/krew" = "latest"
 opencode = "latest"
 kustomize = "latest"
+teleport-community = "latest"
+"github:vmware/pinniped" = "latest"
+kubectx = "latest"
+kubens = { version = "latest", asset_pattern = "kubens_*_darwin_arm64.tar.gz"}
+kind = "latest"
+clang = "latest"
+
 # "aqua:kubernetes-sigs/krew" = "latest"
 # "krew:view-secret" = "latest"
 # "krew:foreach" = "latest"
