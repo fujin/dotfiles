@@ -41,7 +41,7 @@ if status is-interactive
     # flux-operator completion fish | source
 end
 
-export EDITOR="cursor -w"
+export EDITOR="nvim"
 # The next line updates PATH for the Google Cloud SDK.
 if test -f "$HOME/google-cloud-sdk/path.fish.inc"
     . "$HOME/google-cloud-sdk/path.fish.inc"
