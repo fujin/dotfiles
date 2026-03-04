@@ -50,3 +50,15 @@ chezmoi apply
 # Update from remote
 chezmoi update
 ```
+
+## Remote Buildx helper
+
+```bash
+# Optional: verify remote VM can run BuildKit
+~/.local/bin/buildx-devvm-prepare-remote.sh devvm-achristensen
+
+# Create/use remote builder from this workstation
+~/.local/bin/buildx-devvm-setup.sh devvm-achristensen
+```
+
+Both scripts are managed via chezmoi under `dot_local/bin/`.
