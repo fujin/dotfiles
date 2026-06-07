@@ -1,0 +1,44 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+set -euo pipefail
+
+plist="/Library/LaunchDaemons/limit.maxfiles.plist"
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+
+cat > "$tmp" <<'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>limit.maxfiles</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/launchctl</string>
+    <string>limit</string>
+    <string>maxfiles</string>
+    <string>65536</string>
+    <string>65536</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+</dict>
+</plist>
+PLIST
+
+plutil -lint "$tmp" >/dev/null
+
+if [[ ! -f "$plist" ]] || ! cmp -s "$tmp" "$plist"; then
+    echo "Installing $plist..."
+    sudo install -o root -g wheel -m 0644 "$tmp" "$plist"
+fi
+
+sudo launchctl limit maxfiles 65536 65536
+
+if command -v sccache >/dev/null 2>&1; then
+    sccache --stop-server >/dev/null 2>&1 || true
+fi
+
+echo "macOS maxfiles limit configured"
+{{ end -}}

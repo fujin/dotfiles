@@ -49,7 +49,19 @@ gpgsign = true
 program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
 {{- end }}
 [core]
-editor = cursor --wait
+editor = nvim
 	excludesfile = {{ .chezmoi.homeDir }}/.gitignore
+	untrackedCache = true
+	preloadIndex = true
+	multiPackIndex = true
+	commitGraph = true
+[fetch]
+	negotiationAlgorithm = skipping
+	writeCommitGraph = true
+[pack]
+	threads = 0
+[checkout]
+	workers = -1
+	thresholdForParallelism = 1000
 [rebase]
 	autoStash = true
