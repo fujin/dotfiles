@@ -1,0 +1,36 @@
+keybinds {
+    shared_except "tmux" "locked" {
+        bind "Ctrl z" { SwitchToMode "Tmux"; }
+    }
+    tmux {
+        bind "Ctrl z" { Write 26; SwitchToMode "Normal"; }
+    }
+}
+
+themes {
+    catppuccin_mocha {
+        fg 205 214 244
+        bg 30 30 46
+        black 17 17 27
+        red 243 139 168
+        green 166 227 161
+        yellow 249 226 175
+        blue 137 180 250
+        magenta 203 166 247
+        cyan 148 226 213
+        white 205 214 244
+        orange 250 179 135
+    }
+}
+
+theme "catppuccin_mocha"
+default_layout "compact"
+scroll_buffer_size 100000
+copy_clipboard "system"
+copy_on_select true
+show_release_notes false
+
+{{- if eq .chezmoi.os "darwin" }}
+default_shell "/opt/homebrew/bin/fish"
+copy_command "pbcopy"
+{{- end }}

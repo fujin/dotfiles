@@ -12,6 +12,7 @@ direnv = "latest"
 # Editors & terminal
 neovim = "latest"
 tmux = "latest"
+zellij = "latest"
 
 # CLI essentials
 eza = "latest"
