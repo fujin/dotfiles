@@ -9,7 +9,7 @@
   fixtures or repo setup are missing, run the relevant `mise` task, or the
   checked-in task script if mise trust blocks execution, and retry before
   reporting a blocker.
-* Chezmoi is used to manage dotfiles with the repository located at ~/.local/config/chezmoi
+* Chezmoi is used to manage dotfiles with the repository located at ~/.local/share/chezmoi
 
 ## Git
 
@@ -46,13 +46,11 @@
 ## Workspace Hygiene
 
 * Prefer temporary worktrees under the repo's `.worktrees/` directory. Avoid long-lived worktrees in `/private/tmp`; remove temporary worktrees before finishing unless the user asks to keep them.
-* When creating a worktree for a repo with `mise.toml`, trust the copied
-  config from inside the new worktree before running any `mise`-managed
-  commands: `cd .worktrees/<name> && mise trust mise.toml`. Prefer this over
-  `MISE_TRUST_CONFIG_PATHS`; shell shims may invoke `mise` before that override
-  is honored. If trusting the worktree config is not appropriate for the task,
-  avoid `mise` shims and invoke the required tools directly from a trusted
-  checkout or by absolute path.
+* In untrusted `mise.toml` worktrees, do not run build/test commands with mise
+  shims on `PATH`. Either trust the worktree config first, or run validation with
+  a clean non-mise `PATH`. If a Rust build/link step fails because mise says the
+  worktree config is untrusted, treat it as environment setup contamination and
+  retry before reporting a PR blocker.
 * When creating a worktree for a repo that uses generated fixtures, make those fixtures available in the worktree before running tests. Prefer the repo's fixture/setup task; when fixtures are already generated in the primary checkout and the repo pattern supports it, symlink the generated fixture dirs/files into `.worktrees/<name>`. Do not treat fixture symlinks as permission to share Rust build artifacts across unrelated PR heads.
 * Before creating large build artifacts, isolated Rust target directories, container images, VM disks, or long-running review worktrees, check available disk with `df -h` and call out expected storage use if it may be large. If multiple Rust PRs need clean validation, serialize them or clean between PRs rather than filling the disk with concurrent isolated targets.
 * When using Docker, Colima, or other VM/container runtimes, do not create persistent VM/container data unless needed for the task. Report large reclaimable storage with `docker system df` before pruning.

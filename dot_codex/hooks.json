@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.codex/hooks/post_tool_use_quality_checks.sh\"",
+            "timeout": 120,
+            "statusMessage": "Running changed-file quality checks"
+          }
+        ]
+      }
+    ]
+  }
+}

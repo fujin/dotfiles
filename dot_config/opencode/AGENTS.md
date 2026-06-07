@@ -7,7 +7,8 @@
 
 ## Go
 
-* Prefer `alecthomas/kong` for CLI and `knadh/koanf` for configuration sources.
+* Always use `alecthomas/kong` for CLI and `knadh/koanf` for configuration sources.
+* Always use logr/zapr/zap for zero-allocation structured logging
 * For rich TUI, use charmbracelet libraries such as `bubbletea`, `lipgloss` and`huh`
 * For kubernetes controllers, start with `kubebuilder`
 

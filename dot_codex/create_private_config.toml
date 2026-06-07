@@ -4,3 +4,23 @@ model_reasoning_effort = "xhigh"
 [shell_environment_policy]
 inherit = "all"
 experimental_use_profile = true
+
+[mcp_servers]
+
+[mcp_servers.git]
+command = "npx"
+args = ["-y", "@cyanheads/git-mcp-server@2.15.0"]
+
+[mcp_servers.git.env]
+GIT_BASE_DIR = "/Users/aj"
+MCP_LOG_LEVEL = "info"
+
+[mcp_servers.git.tools.git_branch]
+approval_mode = "approve"
+
+[mcp_servers.git.tools.git_rebase]
+approval_mode = "approve"
+
+[mcp_servers.git_official]
+command = "uvx"
+args = ["mcp-server-git==2026.1.14"]
