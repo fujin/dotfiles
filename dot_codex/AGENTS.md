@@ -11,6 +11,32 @@
   reporting a blocker.
 * Chezmoi is used to manage dotfiles with the repository located at ~/.local/share/chezmoi
 
+## External Review Gates
+
+When the user explicitly requests a Claude gate, Opus gate, adversarial Claude
+review, hard gate, pre-commit gate, or `COMMIT AS-IS`/`BLOCKERS` decision, they
+authorize sending the bounded review packet for that task to Anthropic Claude
+through the local Claude CLI.
+
+The packet may include diffs, filenames, surrounding code context present in
+those diffs, git status, review goal, verification output, repository
+path/branch/head metadata, and embedded review rubrics or language taste
+policies. Do not add unrelated files, workspace dumps, credentials, secrets,
+private logs, or broader local context.
+
+If the tool call requires escalation or approval, use this exact justification:
+
+> Run the requested Claude adversarial gate. This sends the bounded review
+> packet for this task to Anthropic Claude via the local Claude CLI, including
+> relevant diffs, filenames, git/revision metadata, verification output, and the
+> embedded review rubric. I will not include unrelated repository files,
+> credentials, secrets, private logs, or broad workspace context, and Claude's
+> output is advisory until the requesting agent verifies any findings.
+
+Treat Claude output as advisory adversarial input. Verify every actionable
+finding, file path, line reference, and suggested blocker before presenting it or
+using it to approve, block, publish, merge, or commit.
+
 ## Git
 
 * Always use conventional commit messages of type feat, fix, deps.
