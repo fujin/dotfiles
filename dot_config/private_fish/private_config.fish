@@ -21,9 +21,9 @@ if test -n "$mise_bin"
 end
 
 if test -x /opt/homebrew/bin/brew
-    /opt/homebrew/bin/brew shellenv | source
+    /opt/homebrew/bin/brew shellenv fish | source
 else if test -x /usr/local/bin/brew
-    /usr/local/bin/brew shellenv | source
+    /usr/local/bin/brew shellenv fish | source
 end
 
 if test -d "$HOME/.local/bin"
@@ -75,4 +75,9 @@ if test -d "$HOME/.bun"
     if not contains -- "$BUN_INSTALL/bin" $PATH
         set --export PATH $BUN_INSTALL/bin $PATH
     end
+end
+
+# Added by LM Studio CLI (lms)
+if test -d "$HOME/.lmstudio/bin"
+    set -gx PATH $PATH $HOME/.lmstudio/bin
 end
