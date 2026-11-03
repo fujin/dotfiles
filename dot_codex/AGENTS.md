@@ -1,104 +1,124 @@
-# Instructions for Codex agents
+# Instructions for coding agents
+
+## Honesty rules (read every turn)
+
+Before claiming a function, class, or import exists, verify it by reading
+the file or running a grep. Never fabricate symbols.
+
+If you cannot verify something, say "I haven't verified this" explicitly.
+Do not write code that depends on the unverified claim.
+
+If a task asks you to use a library you've never seen referenced in this
+project, ask before adding it.
+
+If a task involved tests or builds, do not claim success unless you
+actually ran the test or build command in this session.
+
+Never invent error messages, API responses, or stack traces. If you
+didn't see them, say so.
+
+When you genuinely don't know, the correct answer is "I don't know" or
+"I need to check first." Both are better than a confident guess.
+
+## Failure analysis (contributing factors, not root cause)
+
+When investigating incidents, outages, regressions, or intermittent failures,
+never frame the goal — in your own analysis or in any prompt you write for a
+subagent or workflow — as finding the single root cause. Complex failures
+require several contributing conditions to hold at once
+(https://how.complexsystems.fail/#3). Model the combination, separate defenses
+that held from those absent, and use the `failure-trajectory` skill when
+available for the full method. Naming a dominant contributor is fine; label it
+as such, never as "the cause".
+
+## Verification
+
+Before writing code that uses a symbol, verify it exists: read the defining
+file, grep for it, or check the dependency manifest. Prefer plan-then-execute
+for any task touching more than one file.
 
 ## Tools
 
-* Prefer installing tools with `mise` over `brew`
-* In repositories with `mise.toml`, inspect and prefer the checked-in `mise`
-  tasks for setup, fixtures, tests, and builds before running raw toolchain
-  commands. If a raw command such as `cargo test` fails because generated
-  fixtures or repo setup are missing, run the relevant `mise` task, or the
-  checked-in task script if mise trust blocks execution, and retry before
-  reporting a blocker.
-* Chezmoi is used to manage dotfiles with the repository located at ~/.local/share/chezmoi
+* Prefer installing tools with `mise` over `brew`.
+* In repos with `mise.toml`, prefer the checked-in mise tasks for setup,
+  fixtures, tests, and builds. If a raw command fails for missing fixtures or
+  setup, run the relevant mise task and retry before reporting a blocker.
+* Dotfiles are managed with chezmoi; the repository is ~/.local/share/chezmoi.
+* For local macOS Bake builds/tests and mirror-wrapper troubleshooting, use
+  `bake-mirror`.
+* For worktrees, temp checkouts, mise trust, disk budgets, and Rust
+  build-cache isolation, use the `workspace-hygiene` skill.
 
-## External Review Gates
+## Python
 
-When the user explicitly requests a Claude gate, Opus gate, adversarial Claude
-review, hard gate, pre-commit gate, or `COMMIT AS-IS`/`BLOCKERS` decision, they
-authorize sending the bounded review packet for that task to Anthropic Claude
-through the local Claude CLI.
+Default to `uv` for Python everywhere (`uv run`, `uv sync`, `uv add`, ...)
+instead of raw python/pip/venv/pipx/poetry/pyenv workflows. Use non-uv tooling
+only when the repo explicitly requires it, and state why. Details in the
+`uv-python` skill.
 
-The packet may include diffs, filenames, surrounding code context present in
-those diffs, git status, review goal, verification output, repository
-path/branch/head metadata, and embedded review rubrics or language taste
-policies. Do not add unrelated files, workspace dumps, credentials, secrets,
-private logs, or broader local context.
+## Review gates
 
-If the tool call requires escalation or approval, use this exact justification:
+Explicit Claude/Opus gates run only on user request; consent scope and the
+exact escalation justification live in the `turbo-review` skill. All gate
+output is advisory — verify findings before acting on them.
 
-> Run the requested Claude adversarial gate. This sends the bounded review
-> packet for this task to Anthropic Claude via the local Claude CLI, including
-> relevant diffs, filenames, git/revision metadata, verification output, and the
-> embedded review rubric. I will not include unrelated repository files,
-> credentials, secrets, private logs, or broad workspace context, and Claude's
-> output is advisory until the requesting agent verifies any findings.
+## Pausing work
 
-Treat Claude output as advisory adversarial input. Verify every actionable
-finding, file path, line reference, and suggested blocker before presenting it or
-using it to approve, block, publish, merge, or commit.
+Whenever I or another session asks you to pause or stop work, run
+`/checkpoint` (the `checkpoint` skill) before stopping, even mid-task. It
+records build status, commits and pushes a WIP branch, and writes HANDOFF.md;
+it does not fix anything. A stop that also says "don't commit" or "don't
+push" overrides those steps only.
 
 ## Git
 
-* Always use conventional commit messages of type feat, fix, deps.
-  Avoid using chore without explicit confirmation as these are not releasable units
-* Prefer the GitHub connector for pull request creation, review/comment
-  retrieval, and PR comments when available.
-  Use `gh` only as a fallback for unsupported GitHub operations.
-* Prefer the configured Git MCP server for supported Git operations:
-  status, diff, log, show, branch, worktree, add, commit, stash, fetch, pull,
-  push, merge, rebase, tag, and blame.
-  Use shell git when the MCP lacks the exact operation, the output is
-  insufficient, or a complex CLI workflow is safer.
-* Do not add extra comments on pull requests when following up, addressing problems
-* When multiple agents, tools, or review lanes inspect the same pull request,
-  only the designated coordinator may write to GitHub. Review lanes must return
-  findings privately to the coordinator and must not submit reviews, inline
-  comments, approvals, or change requests. The coordinator deduplicates all
-  findings, resolves conflicts and severity, refetches the PR review timeline
-  immediately before publishing, and submits at most one consolidated GitHub
-  review per PR per pass under the shared identity. If a duplicate review is
-  accidentally posted, avoid public cleanup noise; edit existing comments only
-  when needed to mark a finding superseded or retracted.
-* Prefer squashing a feature branch with many commits.
-  Use rebase autosquash and fixup commits.
-  Rebase before force pushing with lease.
+* Conventional commit messages of type feat, fix, deps. Avoid chore without
+  explicit confirmation; those are not releasable units.
+* Prefer the GitHub connector for PR creation, review/comment retrieval, and
+  PR comments; use `gh` as fallback. No `[codex]` prefix on PR titles.
+* Prefer the configured Git MCP server for supported operations; use shell
+  git when it lacks the operation or a complex workflow is safer.
+* `rerere` may be enabled globally: inspect `git status` and `git diff` after
+  merge/rebase/cherry-pick operations because prior conflict resolutions may
+  have been reused before staging or continuing.
+* Do not add extra comments on pull requests when following up.
+* If multiple agents or lanes inspect one PR, only the designated coordinator
+  writes to GitHub; lanes report privately and the coordinator submits at
+  most one consolidated review per pass.
+* Prefer squashing feature branches with many commits: fixup commits plus
+  rebase autosquash, then force-push with lease.
+
+### Collaborator-owned pull requests
+
+A PR authored by another human, or whose head branch they own, is theirs.
+Broad authority to implement, land, or finish a goal is not authorization to
+rewrite or dispose of it: do not change its title, body, labels, state,
+base/head, reviewers, or merge state, and do not push its branch, without
+explicit authorization in the current task. If new evidence changes the
+strategy for such a PR, stop and ask before touching it. Read-only
+inspection, local checkout and testing, and requested review actions remain
+allowed. For immediate irreversible harm, make only the minimum reversible
+safety change and report it.
 
 ## Rust
 
-* Choose Rust taste guidance by context cost. Use `$rust-taste` (roughly 20 KB) for substantial, review-sensitive, API/performance, or adversarial-review work; it wins more review rounds and gets roughly 95% of the way to the desired result. Use `$rust-taste-core` (two lines) for small, bounded, context-constrained implementation or refactoring; it gets roughly 90%. When review depth matters, prefer the full skill.
-* Prefer git worktrees under `.worktrees/` in the repo root. For Rust PR/review worktrees, do **not** symlink or share `target/` across different PR heads when a build/test result will affect an approval or requested-changes decision. Use an isolated `CARGO_TARGET_DIR` per PR/head for decisive checks, for example `/private/tmp/<repo>-target-pr<num>-<sha>` or a clearly task-scoped ignored target directory, and remove it when finished. Sharing a root `target/` is acceptable only for same-branch local development or exploratory checks where false positives are not review-significant.
-* Isolated Rust targets prevent cache contamination but can exhaust disk quickly. Prefer focused package checks and at most one active isolated target at a time for review queues unless the user explicitly accepts the disk and runtime cost of parallel clean builds. Clean each isolated target as soon as its decisive evidence is captured.
-* `sccache` or other compiler caches may reduce clean-build cost, but they do not replace isolated `CARGO_TARGET_DIR` for review-significant Rust checks. For cacheable Rust runs, prefer `CARGO_INCREMENTAL=0`; when using `sccache` across worktrees, set `SCCACHE_BASEDIRS` to the active checkout/worktree roots and treat sandbox or local-server failures as cache setup issues, not PR validation failures.
+Use the `good-rust` skill for Rust implementation, refactors, and review.
+For review-significant builds and tests, isolate caches per the
+`workspace-hygiene` skill.
 
-## Workspace Hygiene
+## Communication style
 
-* Prefer temporary worktrees under the repo's `.worktrees/` directory. Avoid long-lived worktrees in `/private/tmp`; remove temporary worktrees before finishing unless the user asks to keep them.
-* In untrusted `mise.toml` worktrees, do not run build/test commands with mise
-  shims on `PATH`. Either trust the worktree config first, or run validation with
-  a clean non-mise `PATH`. If a Rust build/link step fails because mise says the
-  worktree config is untrusted, treat it as environment setup contamination and
-  retry before reporting a PR blocker.
-* When creating a worktree for a repo that uses generated fixtures, make those fixtures available in the worktree before running tests. Prefer the repo's fixture/setup task; when fixtures are already generated in the primary checkout and the repo pattern supports it, symlink the generated fixture dirs/files into `.worktrees/<name>`. Do not treat fixture symlinks as permission to share Rust build artifacts across unrelated PR heads.
-* Before creating large build artifacts, isolated Rust target directories, container images, VM disks, or long-running review worktrees, check available disk with `df -h` and call out expected storage use if it may be large. If multiple Rust PRs need clean validation, serialize them or clean between PRs rather than filling the disk with concurrent isolated targets.
-* When using Docker, Colima, or other VM/container runtimes, do not create persistent VM/container data unless needed for the task. Report large reclaimable storage with `docker system df` before pruning.
-* Treat `/private/tmp` as ephemeral: use task-specific directory names, preserve active PR/task dirs, and clean up completed temporary directories at the end of the task.
-* For Rust cache hygiene, never rely on `cargo clean -p ...` inside a shared target as proof of a clean rebuild. If a shared-target build produces a surprising compile/test result, rerun the decisive command with an isolated `CARGO_TARGET_DIR` before reporting a blocker or approval.
+When drafting or rewriting messages in my voice, never use em dashes.
+Use commas, periods, colons, or parentheses instead. Do not substitute
+en dashes or double hyphens.
 
-## Communication Support
+Avoid rhetorical negative triads such as "No X. No Y. No Z."
+State the point directly instead.
 
-When helping with communication, coordination, or executive-function-heavy work:
+Draft Slack messages in the user's observed style: concise, direct, lightly
+conversational, not over-capitalized; lowercase sentence starts are fine in
+casual threads. Avoid corporate phrasing like "Quick update from my pass";
+prefer "update from this pass", "got this working", "current blocker".
+Preserve exact technical facts, links, commands, PR numbers, owners, and
+caveats. Use bullets only when they make evidence easier to scan.
 
-* When async triage risks sprawling, create a compact `Next 3` list for the current session and use it to keep the work bounded.
-* For complex async updates, lead with `Ask`, `Decision`, and `Evidence` when those fields apply, then put deeper context below.
-* For recurring status updates, prefer a running private scratch note plus a curated summary over repeated free-form drafting.
-* For meeting preparation, offer a parking list for pending thoughts and, when timing matters, suggest a visible countdown timer if the environment supports it.
-* Treat reminders, checklists, scratch notes, and external memory as normal work aids for delayed follow-ups or multi-step context.
-
-## Agentic PLC
-
-Do not assume every repository is PLC L1. Use Agentic PLC and the
-`plc-security-scan` skill only when the current repository has repo-local PLC
-instructions, a clear PLC marker, or the user explicitly asks for PLC work.
-
-When a repository is PLC L1, follow its repo-local PLC instructions. If no
-repo-local instructions exist, ask before treating the repository as PLC L1.
