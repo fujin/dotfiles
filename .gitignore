@@ -1,0 +1,2 @@
+# Datacenter SSH configs carry bastion and OSN addresses; keep them local.
+/private_dot_ssh/config.d/99-*.conf
