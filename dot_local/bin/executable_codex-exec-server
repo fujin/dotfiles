@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+
+home_dir="${HOME:-/home/achristensen}"
+
+if [ -d "$home_dir/.local/share/mise/installs/node/latest/bin" ]; then
+    PATH="$home_dir/.local/share/mise/installs/node/latest/bin:$PATH"
+fi
+
+if [ -d "$home_dir/.local/share/mise/shims" ]; then
+    PATH="$home_dir/.local/share/mise/shims:$PATH"
+fi
+
+if [ -d "$home_dir/.local/bin" ]; then
+    PATH="$home_dir/.local/bin:$PATH"
+fi
+
+export PATH
+
+if [ "$#" -eq 0 ]; then
+    set -- --listen stdio
+fi
+
+exec codex exec-server "$@"
