@@ -1,0 +1,251 @@
+#!/usr/bin/env bash
+#MISE description="Type-check / clippy / test the Linux-only lpud crate locally, in a linux/amd64 container"
+#USAGE arg "[mode]" help="check (default) | clippy | test | all" default="check"
+#
+# WHY THIS EXISTS
+#
+# The lpud crate is Linux-only, so macOS cargo cannot touch it, and the feedback
+# loop was otherwise push -> Buildkite. Three consecutive CI rounds on PR #12499
+# were lost to a stale field name after a rename, a missing trait import, and a
+# wrong test assertion — all of which this catches in well under a minute.
+#
+# WHY A CONTAINER, AND WHY amd64
+#
+#   * Cross-compiling from macOS is a dead end: `default = ["sqlite"]` pulls
+#     rusqlite with `bundled`, so libsqlite3-sys wants x86_64-linux-gnu-gcc, and
+#     zstd / aws-lc-sys are C too. It needs a full cross C toolchain.
+#   * linux/arm64 is native and fast here, but the crate genuinely does not
+#     compile for aarch64: native_migration/engine.rs passes st_nlink, which is
+#     u32 on arm64 and u64 on x86_64.
+#   * linux/amd64 runs under Rosetta on Apple Silicon, not qemu. ~70s cold,
+#     ~25s warm. That is the one that works.
+#
+# WHY THE TEST BINARY RUNS UNDER QEMU
+#
+# Rosetta's x86_64 syscall translation does not implement openat2(2): it returns
+# ENOSYS, unconditionally. It is not seccomp (--security-opt seccomp=unconfined
+# changes nothing) and not the kernel (the same linuxkit 6.12 kernel serves
+# openat2 fine to a native arm64 binary in the same VM).
+#
+# lpud resolves every security-sensitive path with openat2 + RESOLVE_BENEATH /
+# RESOLVE_NO_SYMLINKS (bounded_file.rs:489, native_migration/engine.rs:1750,
+# 2369, 2470, 2545), so ENOSYS made 14 tests fail with an Io error where they
+# assert a specific typed rejection. That was NOT a root-vs-permissions problem,
+# which is what this file used to claim.
+#
+# qemu-user >= 8 implements openat2 (Debian trixie ships 10.0.11; bookworm's 7.2
+# does not). So a native-arch qemu-user-static is baked into the image and used
+# only as cargo's *test runner*: the compile still happens under Rosetta at full
+# speed, and only the test executable is emulated. The binary is arm64, so it
+# runs natively inside the amd64 container — the kernel is arm64 either way.
+# Cost measured at ~0.5s on a ~12.5s test phase.
+#
+# This lives in the global mise config rather than the repo because lpu-monorepo
+# has no mise config at all — it builds with nix/bake.
+
+set -euo pipefail
+
+mode="${1:-check}"
+
+# mise runs a task with cwd set to the config root, which for a GLOBAL task is
+# not where you typed the command. MISE_ORIGINAL_CWD is the invoking directory,
+# and without this the repo lookup below resolves against $HOME and fails.
+cd "${MISE_ORIGINAL_CWD:-$PWD}"
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+  echo "lpud-check: not inside a git repository (cwd: $PWD)" >&2
+  exit 1
+}
+crate_rel="Groq/Systems/Runtime/HAL/lpud"
+[ -d "$root/$crate_rel" ] || {
+  echo "lpud-check: no $crate_rel under $root — run this from an lpu-monorepo checkout or worktree" >&2
+  exit 1
+}
+
+# Take the toolchain from the repo so this can never drift from CI.
+channel=$(sed -n 's/^channel = "\(.*\)"$/\1/p' "$root/rust-toolchain.toml")
+[ -n "$channel" ] || { echo "lpud-check: could not read channel from rust-toolchain.toml" >&2; exit 1; }
+
+# testFeatures in lpud.nix is what CI's clippy and lib-test targets use. Without
+# it you get a spurious E0432 on a lab-control-gated import and never reach the
+# real errors, so derive it rather than trusting memory.
+features=$(sed -n '/^  testFeatures = \[/,/^  \];/p' "$root/$crate_rel/lpud.nix" \
+  | grep -oE '"[a-z0-9-]+"' | tr -d '"' | paste -sd, -)
+features=${features:-lab-control,test-support}
+
+# THE ONE KNOWN SUBTRACTION. Not a mystery, and not emulation-agnostic noise:
+#
+# index/runtime.rs:1253 reads raw_monotonic_now() ONCE, then reuses it as
+# created_at_raw for all six iterations of the state table at :1254-1270, each
+# with timeout_nanos: 1_000_000 (:1276). admit_deadline recomputes the remaining
+# budget at index/runtime.rs:880 and fails closed with DeadlineExceeded once the
+# elapsed time passes it — so the whole six-iteration loop, allocations
+# included, has 1ms of wall clock to finish. Native x86_64 CI does it in
+# microseconds; Rosetta AND qemu both blow the budget, so no container tweak can
+# recover this one. Verified: raising only that literal to 900ms makes it pass
+# under Rosetta unchanged.
+#
+# The durable fix is upstream and one line — move the raw_monotonic_now() read
+# inside the loop, or widen the literal — at which point delete this.
+skip_emulated="index::runtime::tests::non_ready_status_fails_before_reader_pool_admission"
+
+# The -qemu suffix is a cache-buster: an image built by an older revision of this
+# file has no qemu-x86_64-static in it, and the inspect below would happily reuse
+# it. Bump the suffix whenever the Dockerfile below changes.
+image="lpud-check-amd64:${channel}-qemu"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "lpud-check: building $image (capnproto is needed by a sonata build script)" >&2
+  # $BUILDPLATFORM, not a hardcoded linux/arm64: the qemu stage must be native to
+  # whatever host is building, so the copied interpreter never itself needs
+  # emulating.
+  printf 'FROM --platform=$BUILDPLATFORM debian:trixie-slim AS qemu\nRUN apt-get update && apt-get install -y --no-install-recommends qemu-user-static && rm -rf /var/lib/apt/lists/*\n\nFROM rust:%s\nRUN apt-get update && apt-get install -y --no-install-recommends capnproto pkg-config && rm -rf /var/lib/apt/lists/*\nRUN rustup component add clippy rustfmt\nCOPY --from=qemu /usr/bin/qemu-x86_64-static /usr/local/bin/qemu-x86_64-static\n' "$channel" \
+    | docker build --platform linux/amd64 -t "$image" - >/dev/null
+fi
+
+# THE LPU SOURCE REVISION FILE, forwarded only when the caller exports it or the
+# checkout is a worktree (see DERIVE below).
+#
+# lpud's build.rs derives the source revision by shelling out to git against the
+# sonata tree. That cannot work from a WORKTREE: there .git is a *file* naming an
+# absolute gitdir under the main checkout — outside the /w mount — so git inside
+# the container dies with "fatal: not a git repository" before a single crate
+# compiles. build.rs's escape hatch is an env var naming a file: with it set,
+# build.rs reads the revision from that file and makes no git calls at all.
+#
+# THE VARIABLE WAS RENAMED. 40adb4cfae2 (2026-10-13) moved build.rs from
+# LPUD_SONATA_SOURCE_REVISION_FILE to LPUD_LPU_SOURCE_REVISION_FILE, and a
+# checkout's build.rs reads exactly one of them depending on its age. Exporting
+# only the old name silently stopped working: build.rs ignored it, took the git
+# path and failed as above. So the container gets BOTH names pointing at the same
+# mounted file; whichever build.rs this checkout has reads its own and ignores
+# the other. The caller may export either (the new name wins).
+#
+# The caller's value is a HOST path and the container sees only /w plus the named
+# volumes, so forwarding it verbatim would just move the failure inside. Bind
+# mount the file read-only at a fixed path and pass THAT instead. It must be an
+# absolute path to an existing file: docker -v silently turns a bare relative
+# path into a *named volume* and a missing path into an empty directory, and
+# build.rs would then fail on a directory rather than on git.
+#
+# Unset must produce an empty array, never `-e LPUD_LPU_SOURCE_REVISION_FILE=`:
+# an empty value is Some(""), which sends build.rs looking for a file named "".
+#
+# DERIVE IT AUTOMATICALLY IN A WORKTREE. The failure above is not occasional, it
+# is certain: every worktree has a .git FILE pointing at a gitdir outside /w, so
+# build.rs's git path cannot work and the caller had to remember the export every
+# time. A normal checkout is left alone on purpose — there .git is a directory
+# the mount carries in, and build.rs's own path is strictly better because it
+# emits rerun-if-changed for every tracked sonata file rather than for one
+# summary line.
+#
+# The cache path is stable per checkout rather than mktemp: build.rs emits
+# `cargo:rerun-if-changed=<path>`, so a fresh filename each run would invalidate
+# the build script on every invocation. Keyed by $root so sibling worktrees do
+# not collide.
+rev_file="${LPUD_LPU_SOURCE_REVISION_FILE:-${LPUD_SONATA_SOURCE_REVISION_FILE:-}}"
+sonata_rel="Groq/Systems/Runtime/HAL/sonata"
+if [ -z "$rev_file" ] && [ -f "$root/.git" ] && [ -d "$root/$sonata_rel" ]; then
+  cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/lpud-check"
+  mkdir -p "$cache_dir"
+  rev_file="$cache_dir/sonata-revision-$(printf '%s' "$root" | shasum -a 256 | cut -c1-16)"
+  # Mirror build.rs's git-path format exactly: HEAD sha, with a -dirty suffix
+  # when sonata's TRACKED files differ. Untracked are excluded there too.
+  # In a sparse checkout this stays correct: files outside the cone are
+  # SKIP_WORKTREE, which git does not report as modified.
+  sonata_head=$(git -C "$root/$sonata_rel" rev-parse --verify HEAD)
+  if [ -n "$(git -C "$root/$sonata_rel" status --porcelain=v1 --untracked-files=no -- .)" ]; then
+    sonata_head="$sonata_head-dirty"
+  fi
+  printf '%s\n' "$sonata_head" > "$rev_file"
+fi
+
+revision_args=()
+if [ -n "$rev_file" ]; then
+  [ "${rev_file#/}" != "$rev_file" ] && [ -f "$rev_file" ] || {
+    echo "lpud-check: the LPU source revision file must be an absolute path to an existing file (got '$rev_file')" >&2
+    exit 1
+  }
+  revision_args=(-v "$rev_file":/lpud-source-revision:ro
+                 -e LPUD_LPU_SOURCE_REVISION_FILE=/lpud-source-revision
+                 -e LPUD_SONATA_SOURCE_REVISION_FILE=/lpud-source-revision)
+fi
+
+# ONE TARGET VOLUME PER CHECKOUT. Every checkout is mounted at the same /w, so a
+# single shared target volume makes two worktrees indistinguishable to cargo: its
+# fingerprints key on paths and mtimes, so a run in one worktree can reuse
+# artifacts compiled from another branch's sources and report their result as
+# its own (a test that exists only on the other branch "passes", errors point at
+# code this diff never touched). Keyed by $root like the revision file above.
+# Volumes of retired worktrees accumulate; list them with
+# `docker volume ls --filter name=lpud-target-amd64-` and remove the dead ones.
+# The registry volume stays shared: downloaded crates are content-addressed.
+target_volume="lpud-target-amd64-$(printf '%s' "$root" | shasum -a 256 | cut -c1-16)"
+
+# -p lpud: without it cargo also checks sibling workspace members, and
+#   sonata-gas's capnp build script fails on its own stdlib includes. Nothing in
+#   lpud's dependency graph needs it.
+# RUST_MIN_STACK: some release::hil tests overflow the default thread stack
+#   under Docker. Environmental, not a real failure.
+# CARGO_TARGET_..._RUNNER: see "WHY THE TEST BINARY RUNS UNDER QEMU" above. Cargo
+#   applies the runner to test/bench/run executables only — build scripts and
+#   proc macros still execute directly under Rosetta — so check and clippy are
+#   completely unaffected by setting it unconditionally here.
+run() {
+  docker run --rm --platform linux/amd64 \
+    -v "$root":/w \
+    -v lpud-cargo-amd64:/usr/local/cargo/registry \
+    -v "$target_volume":/target \
+    -w "/w/$crate_rel" \
+    -e CARGO_TARGET_DIR=/target -e CARGO_INCREMENTAL=0 -e RUST_MIN_STACK=16777216 \
+    -e CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER=qemu-x86_64-static \
+    "${revision_args[@]}" \
+    "$image" "$@"
+}
+
+# The workspace holds TWO packages this PR changes, and CI lints them as
+# SEPARATE targets with different flags (`clippy` and `clippy-kubernetes-authorizer`
+# in lpud.nix). Checking only lpud left ~9k lines of lpud-kubernetes-authorizer
+# unexamined locally — a blind spot that is invisible precisely because the lpud
+# half goes green.
+authorizer() {
+  # --all-targets here, unlike lpud's --lib: that is what cargoClippyFlags says
+  # for this package, and it takes no feature flags.
+  run cargo "$1" -p lpud-kubernetes-authorizer --all-targets "${@:2}"
+}
+
+case "$mode" in
+  # The broad gate, and the one that earns its keep. `check` rather than
+  # `clippy` on purpose: it does not run clippy lints, so it is immune to the
+  # crate's disallowed_methods ban firing on pre-existing .expect() in main.rs.
+  check)
+    run cargo check -p lpud --all-targets --features "$features"
+    authorizer check
+    ;;
+  # --lib, matching cargoClippyFlags in lpud.nix. With --all-targets you get
+  # ~446 errors from code CI never lints.
+  #
+  # `-D warnings` is NOT optional. CI denies warnings, so an ordinary
+  # unused-import is a build failure there and a silent green here. That gap ate
+  # a CI round: a `use std::sync::Mutex` needed only by a #[cfg(test)] item is
+  # used under `check --all-targets` (which compiles the test cfg) and unused
+  # under `clippy --lib` (which does not) — so both local steps passed and CI
+  # still failed.
+  clippy)
+    run cargo clippy -p lpud --lib --features "$features" -- -D warnings
+    authorizer clippy -- -D warnings
+    ;;
+  # What rust-coverage runs. AUTHORITATIVE now: 831 pass, 0 fail, 1 skipped.
+  # Any red here is a real failure — do not wave it off as "the container".
+  test)   run cargo test   -p lpud --lib         --features "$features" -- --skip "$skip_emulated" ;;
+  all)
+    run sh -c "cargo check -p lpud --all-targets --features $features \
+      && cargo check -p lpud-kubernetes-authorizer --all-targets \
+      && cargo clippy -p lpud --lib --features $features -- -D warnings \
+      && cargo clippy -p lpud-kubernetes-authorizer --all-targets -- -D warnings \
+      && cargo test -p lpud --lib --features $features -- --skip $skip_emulated"
+    ;;
+  *)
+    echo "lpud-check: unknown mode '$mode' (want: check | clippy | test | all)" >&2
+    exit 2
+    ;;
+esac

@@ -41,7 +41,6 @@ kubectl = "1.35"
 k9s = "latest"
 terraform = "latest"
 opentofu = "latest"
-codex = "latest"
 talosctl = "1.12.2"
 colima = "latest"
 gcloud = "latest"
@@ -50,7 +49,6 @@ stern = "latest"
 "aqua:kubernetes-sigs/krew" = "latest"
 opencode = "latest"
 kustomize = "latest"
-teleport-community = "latest"
 "github:vmware/pinniped" = "latest"
 kubectx = "latest"
 kubens = { version = "latest", asset_pattern = "kubens_*_darwin_arm64.tar.gz"}
@@ -61,6 +59,16 @@ glab = "latest"
 "gitlab:graphviz/graphviz" = "latest"
 "github:nvidia-lpu/kubectl-vlogs" = "latest"
 rclone = "latest"
+"github:jj-vcs/jj" = "latest"
+pandoc = "latest"
+"npm:pyright" = "latest"
+"npm:typescript-language-server" = "latest"
+"npm:typescript" = "latest"
+"ubi:BLAKE3-team/BLAKE3" = { version = "latest", exe = "b3sum" }
+vhs = "latest"
+shellcheck = "latest"
+dyff = "latest"
+teleport-ent = "18"
 
 # "aqua:kubernetes-sigs/krew" = "latest"
 # "krew:view-secret" = "latest"
@@ -68,3 +76,16 @@ rclone = "latest"
 
 [settings]
 experimental = true
+trusted_config_paths = [
+  "/Users/aj/.codex/worktrees",
+  "/Users/aj/dev/.codex/worktrees",
+  "/Users/aj/dev/github/nvidia",
+  "/Users/aj/dev/github/nvidia-lpu",
+  "/Users/aj/dev/github/fujin",
+  "/Users/aj/dev/gitlab/achristensen",
+  "/Users/aj/nv",
+  "/Users/aj/Developer",
+  "/Users/aj/.local/share/chezmoi",
+  "/Users/aj/tmp",
+  "/Users/aj/nv/tmp",
+]
