@@ -94,19 +94,6 @@ When helping with communication, coordination, or executive-function-heavy work:
 * For meeting preparation, offer a parking list for pending thoughts and, when timing matters, suggest a visible countdown timer if the environment supports it.
 * Treat reminders, checklists, scratch notes, and external memory as normal work aids for delayed follow-ups or multi-step context.
 
-<!-- BEGIN THYMOS MANAGED SIDEKICK GUIDANCE -->
-## Thymos Sidekick
-
-A Thymos sidekick may be available to support your work in this workspace.
-
-* Reach for it when continuity, recall, grounding, synthesis, or a safer next step would help.
-* Use focused questions and a short context summary.
-* Let it support long debugging sessions, reviews, refactors, migrations, and research-heavy work.
-* Keep ownership of the task, decisions, and final answer.
-* When sidekick input shapes your next step, record the outcome when convenient.
-<!-- END THYMOS MANAGED SIDEKICK GUIDANCE -->
-
-
 ## Agentic PLC
 
 Do not assume every repository is PLC L1. Use Agentic PLC and the
