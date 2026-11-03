@@ -1,72 +1,83 @@
 {
-  "cleanupPeriodDays": 30,
-  "env": {},
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
-  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
-      "Bash(git:*)",
-      "Bash(npm:*)",
-      "Bash(yarn:*)",
-      "Bash(pnpm:*)",
-      "Bash(go:*)",
-      "Bash(zig:*)",
-      "Bash(make:*)",
-      "Bash(ls:*)",
-      "Bash(find:*)",
-      "Bash(grep:*)",
-      "Bash(rg:*)",
-      "Bash(cat:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(chmod:*)",
-      "Bash(ln:*)",
-      "Bash(mkdir:*)",
-      "Bash(rm:*)",
-      "Bash(mv:*)",
-      "Bash(cp:*)",
-      "Bash(touch:*)",
-      "Bash(which:*)",
-      "Bash(type:*)",
-      "Bash(echo:*)",
-      "Bash(printf:*)",
-      "Bash(test:*)",
-      "WebFetch(domain:docs.anthropic.com)",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:stackoverflow.com)",
-      "WebFetch(domain:nodejs.org)",
-      "WebFetch(domain:go.dev)",
-      "WebFetch(domain:ziglang.org)"
-    ]
+      "Bash(ssh devvm-achristensen *)",
+      "Bash(bake *)",
+      "Bash(bake-mirrors *)",
+      "Bash(/home/achristensen/.cargo/bin/cargo +1.99.1 build --manifest-path /home/achristensen/dev/gitlab/okilani/tricorder/*)",
+      "Bash(/home/achristensen/.cargo/bin/cargo +1.99.1 test --manifest-path /home/achristensen/dev/gitlab/okilani/tricorder/*)",
+      "Bash(/home/achristensen/.cargo/bin/cargo +1.99.1 clippy --manifest-path /home/achristensen/dev/gitlab/okilani/tricorder/*)",
+      "Bash(/home/achristensen/.cargo/bin/cargo +1.99.1 fmt --manifest-path /home/achristensen/dev/gitlab/okilani/tricorder/*)"
+    ],
+    "defaultMode": "auto"
   },
-  "model": "opus[1m]",
+  "model": "opus",
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "",
+        "matcher": "^(startup|resume|clear|compact|fork)$",
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'export PATH=\"$HOME/.local/share/mise/shims:$PATH\"' >> \"$CLAUDE_ENV_FILE\""
+            "command": "bash '/Users/aj/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
           }
         ]
       }
     ]
   },
   "enabledPlugins": {
-    "claude-md-management@claude-plugins-official": true,
-    "example-skills@anthropic-agent-skills": true,
-    "claude-mem@thedotmack": true
+    "pyright-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "diagram-design@diagram-design": true,
+    "skins@hellosverre-mods": true
   },
   "extraKnownMarketplaces": {
-    "thedotmack": {
+    "diagram-design": {
       "source": {
         "source": "github",
-        "repo": "thedotmack/claude-mem"
+        "repo": "cathrynlavery/diagram-design"
+      }
+    },
+    "hellosverre-mods": {
+      "source": {
+        "source": "github",
+        "repo": "hellosverre/claude-skins"
+      }
+    },
+    "aj-mods": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/aj/dev/local/claude-mods"
       }
     }
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowUnixSockets": [
+        "/Users/aj/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+      ]
+    },
+    "filesystem": {
+      "allowWrite": [
+        "~/.config/gcloud"
+      ]
+    },
+    "excludedCommands": [
+      "gh *"
+    ]
+  },
+  "syntaxHighlightingDisabled": false,
+  "tui": "fullscreen",
+  "skipWorkflowUsageWarning": true,
+  "theme": "custom:catppucin-mocha",
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Running `bake`, `bake-mirrors`, or `ssh devvm-achristensen ...`. devvm-achristensen is the user's own GCP developer VM, reached over an IAP tunnel. It is the sanctioned execution host for the lpu-monorepo Bake/Nix build system, which pins system = \"x86_64-linux\" and therefore cannot run on macOS. `bake` here is a local shim at ~/bin/bake that mirrors the current git worktree to that VM and runs the real bake there."
+    ]
   }
 }
