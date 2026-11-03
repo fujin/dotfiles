@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+umask 077
+
+agent_dir="$HOME/.ssh/devvm-agent"
+agent_socket="$agent_dir/agent.sock"
+if [ -L "$agent_dir" ]; then
+    printf 'error: refusing a symlinked devvm agent directory\n' >&2
+    exit 1
+fi
+/bin/mkdir -p "$agent_dir"
+/bin/chmod 700 "$agent_dir"
+
+if [ -e "$agent_socket" ] || [ -S "$agent_socket" ] || [ -L "$agent_socket" ]; then
+    if [ ! -S "$agent_socket" ] || [ -L "$agent_socket" ]; then
+        printf 'error: unexpected file at devvm agent socket path\n' >&2
+        exit 1
+    fi
+    agent_status=0
+    SSH_AUTH_SOCK="$agent_socket" /usr/bin/ssh-add -l >/dev/null 2>&1 || agent_status=$?
+    case "$agent_status" in
+        0|1)
+            printf 'error: a devvm agent is already listening\n' >&2
+            exit 1
+            ;;
+        2) /bin/rm -f "$agent_socket" ;;
+        *) printf 'error: cannot determine devvm agent socket state\n' >&2; exit 1 ;;
+    esac
+fi
+
+exec /usr/bin/ssh-agent -D -a "$agent_socket"
