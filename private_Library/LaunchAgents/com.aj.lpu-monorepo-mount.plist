@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.aj.lpu-monorepo-mount</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/bin/hdiutil</string>
+		<string>attach</string>
+		<string>/Users/aj/dev/github/nvidia-lpu/lpu-monorepo.sparsebundle</string>
+		<string>-mountpoint</string>
+		<string>/Users/aj/dev/github/nvidia-lpu/lpu-monorepo</string>
+		<string>-nobrowse</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>StandardOutPath</key>
+	<string>/Users/aj/Library/Logs/lpu-monorepo-mount.launchd.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/aj/Library/Logs/lpu-monorepo-mount.launchd.log</string>
+</dict>
+</plist>
