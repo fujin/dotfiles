@@ -2,13 +2,24 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Edit|Write",
         "hooks": [
           {
-            "type": "command",
             "command": "\"$HOME/.codex/hooks/post_tool_use_quality_checks.sh\"",
+            "statusMessage": "Running changed-file quality checks",
             "timeout": 120,
-            "statusMessage": "Running changed-file quality checks"
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bash '/Users/aj/.codex/herdr-agent-state.sh' session",
+            "timeout": 10,
+            "type": "command"
           }
         ]
       }

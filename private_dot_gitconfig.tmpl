@@ -13,7 +13,7 @@ dc = diff --cached
 rb = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
 	up = pull --rebase --autostash
 [rerere]
-enabled = true
+enabled = false
 [push]
 autoSetupRemote = true
 default = simple

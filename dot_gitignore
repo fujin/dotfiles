@@ -2,3 +2,7 @@
 /AGENT.md
 /.claude/
 /.worktrees/
+
+**/.claude/settings.local.json
+
+**/.claude/.cc-writes/
