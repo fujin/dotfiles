@@ -1,4 +1,5 @@
 #!/bin/bash
+# Rerun when tmux.conf changes: {{ include "dot_tmux.conf.tmpl" | sha256sum }}
 set -euo pipefail
 
 TPM_DIR="$HOME/.tmux/plugins/tpm"
