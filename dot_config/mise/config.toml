@@ -31,6 +31,7 @@ node = "latest"
 npm = "latest"
 python = "latest"
 rust = "stable"
+"github:arthur-debert/rustloc" = "latest"
 
 # AI tools
 chezmoi = "latest"
