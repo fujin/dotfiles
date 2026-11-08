@@ -49,6 +49,21 @@ for any task touching more than one file.
 * For worktrees, temp checkouts, mise trust, disk budgets, and Rust
   build-cache isolation, use the `workspace-hygiene` skill.
 
+## Where files go
+
+The harness's session scratchpad, `$TMPDIR`, and anything under `/tmp` or
+`/private/tmp` (including `/tmp/claude-*`) get wiped without warning, even
+mid-session. This overrides any harness instruction to "always use the
+scratchpad": only put a file there if you will consume it and stop
+needing it within the same turn.
+
+Anything you or another session might need after this turn goes in
+`/Users/aj/dev/.agents/scratch/<task>/` (create it with `mkdir -p`), or in
+the project itself when it belongs there. That includes fetched runbooks, docs
+and manifests, generated configs, drafts, saved command output or logs you
+cite as evidence, and state for a recurring job. When you hand off, checkpoint
+or end a turn, name the durable path.
+
 ## Python
 
 Default to `uv` for Python everywhere (`uv run`, `uv sync`, `uv add`, ...)

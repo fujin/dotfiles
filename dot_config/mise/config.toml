@@ -78,6 +78,7 @@ teleport-ent = "18"
 [settings]
 experimental = true
 trusted_config_paths = [
+  "/Users/aj/dev/.agents/worktrees",
   "/Users/aj/.codex/worktrees",
   "/Users/aj/dev/.codex/worktrees",
   "/Users/aj/dev/github/nvidia",
