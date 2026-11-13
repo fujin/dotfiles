@@ -92,6 +92,9 @@ output is advisory — verify findings before acting on them.
   main, run the `second-opinion` agent (Fable, fresh context). Give it the
   artifact and the question, never the conclusion. This is separate from the
   turbo-review gates above.
+* No standing ultracode on Fable sessions. Run a workflow only for the task
+  that needs breadth, and in a Fable session set `model: opus` on workflow
+  agents unless a stage genuinely needs Fable.
 * This section counts as my explicit instruction to set subagent model and
   effort per these rules.
 
