@@ -12,6 +12,7 @@
     "defaultMode": "auto"
   },
   "model": "opus",
+  "advisorModel": "fable",
   "hooks": {
     "SessionStart": [
       {
@@ -63,7 +64,8 @@
     },
     "filesystem": {
       "allowWrite": [
-        "~/.config/gcloud"
+        "~/.config/gcloud",
+        "~/dev/.agents/scratch"
       ]
     },
     "excludedCommands": [
