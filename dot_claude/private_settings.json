@@ -9,7 +9,10 @@
       "Bash(/home/achristensen/.cargo/bin/cargo +1.99.1 clippy --manifest-path /home/achristensen/dev/gitlab/okilani/tricorder/*)",
       "Bash(/home/achristensen/.cargo/bin/cargo +1.99.1 fmt --manifest-path /home/achristensen/dev/gitlab/okilani/tricorder/*)"
     ],
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "additionalDirectories": [
+      "~/dev/.agents/scratch"
+    ]
   },
   "model": "opus",
   "advisorModel": "fable",
