@@ -77,6 +77,24 @@ Explicit Claude/Opus gates run only on user request; consent scope and the
 exact escalation justification live in the `turbo-review` skill. All gate
 output is advisory — verify findings before acting on them.
 
+## Models and effort (Claude Code only)
+
+* Default: Opus 5.5 at medium effort, or ultracode for large work. Do not
+  route work to Sonnet or Haiku unless I ask.
+* Lead and design sessions run on Fable 5.2 at high effort; use xhigh only for
+  a turn that makes a real design call. Avoid max.
+* Rebases are judgment work, not text merging: understand the branch's intent
+  against what changed on main. Never hand them to a cheaper model.
+* The advisor is configured in settings (`advisorModel`), not here. If you
+  are on Opus doing design or rebase work and have no advisor tool, suggest
+  `/advisor fable` once.
+* Before a design decision lands, or for a rebase that reconciles intent with
+  main, run the `second-opinion` agent (Fable, fresh context). Give it the
+  artifact and the question, never the conclusion. This is separate from the
+  turbo-review gates above.
+* This section counts as my explicit instruction to set subagent model and
+  effort per these rules.
+
 ## Pausing work
 
 Whenever I or another session asks you to pause or stop work, run
